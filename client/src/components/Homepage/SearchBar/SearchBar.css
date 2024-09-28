@@ -1,0 +1,22 @@
+.SearchBar--container {
+    display: flex;
+    justify-content: space-between;
+    padding: .5rem;
+}
+
+.search-portion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sort-portion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.SearchBar--container small{
+    width: 5rem;
+}
