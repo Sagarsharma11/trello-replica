@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+import { clientId } from '../utils/credentials';
+import { jwtDecode } from "jwt-decode";
+import { loginApi, signup } from '../services/UserApis';
 import "../styles/Login.css";
 
 const Login = () => {
-    const [credentials, setCredentials] = useState({
-        email: "",
-        password: ""
-    });
-
+    const [credentials, setCredentials] = useState({ email: "", password: "" });
     const [errors, setErrors] = useState({});
-    const navigate = useNavigate(); 
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+    const navigate = useNavigate();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -22,60 +20,86 @@ const Login = () => {
 
     const handleSubmit = async () => {
         if (isValid()) {
-            try {
-                const response = await axios.post('http://localhost:8000/api/v1/user/login', credentials);
-                if (response.status === 200) {
-                    console.log("Login successful:", response.data);
-                    const token = response.data?.data?.token;
-                    if (token) {
-                        localStorage.setItem("trello-token", token);
-                           setTimeout(() => {
-                            navigate('/'); 
-                        }, 1000);
-                    } else {
-                        setErrors({ api: "Unexpected response from server." });
-                    }
-                }
-            } catch (error) {
-                console.error("There was an error during login:", error);
-                if (error.response && error.response.status === 401) {
-                    setErrors({ api: "Invalid credentials. Please try again." });
-                } else {
-                    setErrors({ api: "Login failed. Please try again later." });
-                }
-            }
+            await authenticateUser(credentials);
         } else {
             console.log("Form contains errors");
         }
     };
 
+    const authenticateUser = async (userCredentials) => {
+        try {
+            const response = await loginApi(userCredentials);
+            handleLoginResponse(response);
+        } catch (error) {
+            handleError(error);
+        }
+    };
+
     const validateField = (name, value) => {
         let errorMsg = "";
-
-        switch (name) {
-            case "email":
-                if (!emailRegex.test(value)) {
-                    errorMsg = "Invalid email format";
-                }
-                break;
-            case "password":
-                if (!value) {
-                    errorMsg = "Password is required";
-                }
-                break;
-            default:
-                break;
+        if (name === "email" && !emailRegex.test(value)) {
+            errorMsg = "Invalid email format";
+        } else if (name === "password" && !value) {
+            errorMsg = "Password is required";
         }
-
         setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMsg }));
     };
 
-    const isValid = () => {
-        return (
-            emailRegex.test(credentials.email) &&
-            credentials.password &&
-            Object.values(errors).every((error) => !error)
-        );
+    const isValid = () => (
+        emailRegex.test(credentials.email) &&
+        credentials.password &&
+        Object.values(errors).every((error) => !error)
+    );
+
+    const handleSuccess = async (ele) => {
+        console.log("Google Login success: ", ele);
+        const userData = jwtDecode(ele.credential);
+        console.log("Decoded userData: ", userData);
+
+        if (userData) {
+            const userPayload = {
+                firstName: userData.given_name,
+                lastName: userData.family_name,
+                email: userData.email,
+                password: "google-login",
+            };
+
+            await handleGoogleLogin(userPayload);
+        }
+    };
+
+    const handleGoogleLogin = async (userPayload) => {
+        try {
+            const response = await signup(userPayload);
+            handleLoginResponse(response);
+        } catch (signupError) {
+            console.error("Signup failed, attempting login:", signupError);
+            userPayload = {
+                email:userPayload.email,
+                password: userPayload.password
+            }
+            await authenticateUser(userPayload);
+        }
+    };
+
+    const handleLoginResponse = (response) => {
+        console.log("Login successful:", response);
+        const token = response?.token;
+        if (token) {
+            localStorage.setItem("trello-token", token);
+            navigate('/')
+            // setTimeout(() => navigate('/'), 1000);
+        } else {
+            setErrors({ api: "Unexpected response from server." });
+        }
+    };
+
+    const handleError = (error) => {
+        console.error("Login error:", error);
+        const message = error.response && error.response.status === 401
+            ? "Invalid credentials. Please try again."
+            : "Login failed. Please try again later.";
+        setErrors({ api: message });
     };
 
     return (
@@ -106,22 +130,25 @@ const Login = () => {
                     <button
                         disabled={!isValid()}
                         onClick={handleSubmit}
-                        className='btn btn-primary w-100'
+                        className='btn btn-primary w-100 btn-sm'
                     >
                         Login
                     </button>
 
                     <small className='fw-bold'>
-                        Don't have an account? <span className='text-primary' onClick={() => navigate('/signup')}>Signup</span>
+                        Don't have an account? <span role="button" className='text-primary' onClick={() => navigate('/signup')}>Signup</span>
                     </small>
 
-                    <button className='btn btn-primary mt-3'>
-                        Login with <span className='fw-bold'>Google</span>
-                    </button>
+                    <GoogleLogin
+                        clientId={clientId}
+                        ux_mode="popup"
+                        onSuccess={handleSuccess}
+                        onError={() => console.log('Login Failed')}
+                    />
                 </div>
             </div>
         </div>
     );
-}
+};
 
 export default Login;

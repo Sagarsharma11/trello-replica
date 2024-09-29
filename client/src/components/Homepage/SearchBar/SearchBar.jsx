@@ -18,11 +18,11 @@ const SearchBar = () => {
         <div className='SearchBar--container w-100 border shadow rounded'>
             <div className='search-portion'>
                 <small>Search:</small>
-                <input onChange={(e)=>setSearch(e.target.value)} className='form-control' type="text" placeholder='Search...' />
+                <input onChange={(e)=>setSearch(e.target.value)} className='form-control form-control-sm' type="text" placeholder='Search...' />
             </div>
             <div className='sort-portion'>
                 <small >Sort By:</small>
-                <select onChange={reverseTheArray} class="form-select">
+                <select onChange={reverseTheArray} class="form-select form-select-sm">
                     <option selected>Recent</option>
                     <option value="1">Descending</option>
                 </select>

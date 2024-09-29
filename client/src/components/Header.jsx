@@ -15,22 +15,22 @@ const Header = () => {
     return (
         <div className='header--container'>
             <div>
-                <h1>Trello Replica</h1>
+                <h4>Trello Replica</h4>
             </div>
             <div>
                 {
                     !token ?
                         <>
                             <Link to="/login">
-                                <button className='btn btn-primary'>
+                                <button className='btn btn-primary btn-sm'>
                                     Login
                                 </button>
                             </Link>
                             <Link to="/signup">
-                                <small className='ms-2'>Signup</small>
+                                <small className='ms-2 btn-sm'>Signup</small>
                             </Link>
                         </> :
-                        <button onClick={handleLogout} className='btn btn-danger'>
+                        <button onClick={handleLogout} className='btn btn-danger btn-sm' >
                             <small className='ms-2'>Logout</small>
                         </button>
                 }

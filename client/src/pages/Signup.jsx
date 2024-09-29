@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-import axios from 'axios'; 
+import { useNavigate } from 'react-router-dom';
+import { signup } from '../services/UserApis';
 import "../styles/Signup.css";
 
 const Signup = () => {
@@ -13,10 +13,10 @@ const Signup = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^\d{4}$/; 
+    const passwordRegex = /^\d{4}$/; // Assuming password must be exactly 4 digits
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -27,11 +27,9 @@ const Signup = () => {
     const handleSubmit = async () => {
         if (isValid()) {
             try {
-                const response = await axios.post('http://localhost:8000/api/v1/user/register', userInfo);
-                if (response.status === 201) {
-                    console.log("Registration successful:", response.data);
-                    navigate('/login'); 
-                }
+                await signup(userInfo); // Use the imported signup function
+                console.log("Registration successful");
+                navigate('/login');
             } catch (error) {
                 console.error("There was an error during registration:", error);
                 setErrors({ ...errors, api: "Registration failed. Please try again." });
@@ -136,18 +134,14 @@ const Signup = () => {
                     <button
                         disabled={!isValid()}
                         onClick={handleSubmit}
-                        className="btn btn-primary w-100"
+                        className="btn btn-primary w-100 btn-sm"
                     >
                         Signup
                     </button>
 
                     <small className="fw-bold">
-                        Already have an account? <span className="text-primary">Login</span>
+                        Already have an account? <span onClick={() => navigate('/login')} role="button" className="text-primary">Login</span>
                     </small>
-
-                    <button className="btn btn-primary mt-3">
-                        Signup with <span className="fw-bold">Google</span>
-                    </button>
                 </div>
             </div>
         </div>

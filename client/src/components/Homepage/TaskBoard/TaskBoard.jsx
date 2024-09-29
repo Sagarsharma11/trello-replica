@@ -11,7 +11,7 @@ const TaskBoard = ({ handleShow, setModalType }) => {
 
     useEffect(() => {
         fetchApi();
-    })
+    },[])
 
     const fetchApi = async () => {
         const taskResponseArray = await getAllTask();

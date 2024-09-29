@@ -17,3 +17,9 @@
 .Login--container .inner-box  input{
     width: 23rem;
 }
+
+@media screen and (max-width:480px) {
+    .Login--container .inner-box  input{
+        width: 15rem;
+    }
+}

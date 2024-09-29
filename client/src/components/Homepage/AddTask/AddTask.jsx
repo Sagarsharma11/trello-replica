@@ -8,7 +8,7 @@ const AddTask = ({ handleShow, setModalType}) => {
         <button onClick={()=>{
           handleShow();
           setModalType("add-task");
-        }} className='btn btn-primary px-4'>
+        }} className='btn btn-primary px-4 btn-sm'>
             Add Task
         </button>   
     </div>
